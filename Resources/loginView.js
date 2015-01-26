@@ -9,6 +9,7 @@ var loginViewInit = function(){
 		fullscreen:true,
 		//tabBarHidden:true
 		orientationModes:[
+			//Ti.UI.PORTRAIT,
 			Ti.UI.LANDSCAPE_LEFT,
 			Ti.UI.LANDSCAPE_RIGHT
 		]

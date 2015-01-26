@@ -1,5 +1,6 @@
 // state, default values
 var appValidModes = [
+	//Ti.UI.PORTRAIT,
 	Ti.UI.LANDSCAPE_LEFT,
     Ti.UI.LANDSCAPE_RIGHT
 ];

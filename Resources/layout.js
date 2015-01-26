@@ -10,8 +10,8 @@ var getCurrentPositionLayout = function(orientationMode){
 	obj.shortSideWidth = Math.min(obj.screenHeight, obj.screenWidth);
 	obj.longSideWidth = Math.max(obj.screenHeight, obj.screenWidth);
 	
-	orientationMode = orientationMode || ((obj.shortSideWidth < obj.screenHeight)? Ti.UI.PORTRAIT : Ti.UI.LANDSCAPE_LEFT);
-	if(modes.indexOf(orientationMode) == -1) return undefined;
+	//orientationMode = orientationMode || ((obj.shortSideWidth < obj.screenHeight)? Ti.UI.PORTRAIT : Ti.UI.LANDSCAPE_LEFT);
+	//if(modes.indexOf(orientationMode) == -1) return undefined;
 	
 	obj.padding = obj.shortSideWidth / 48;
 	obj.squareWidth = obj.shortSideWidth - obj.padding * 2;
@@ -19,7 +19,7 @@ var getCurrentPositionLayout = function(orientationMode){
 	obj.fontSize = (obj.shortSideWidth > 480)? (obj.shortSideWidth / 450 * 28) : 28;
 	obj.gapUnitSize = (obj.shortSideWidth > 480)? (obj.shortSideWidth / 450 * 30) : 30;
 	
-	var isPortrait = orientationMode == Ti.UI.PORTRAIT; 
+	//var isPortrait = orientationMode == Ti.UI.PORTRAIT; 
 	//|| orientationMode == Ti.UI.UPSIDE_PORTRAIT
 	
 	// in running view 
