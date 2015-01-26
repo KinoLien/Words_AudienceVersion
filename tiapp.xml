@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ti:app xmlns:ti="http://ti.appcelerator.org">
     <id>com.YanInc.WordsAud</id>
-    <name>Words_Audience</name>
+    <name>一字千金觀眾版</name>
     <version>1.0</version>
-    <publisher>miecowbai</publisher>
+    <publisher>YanInc</publisher>
     <url>http://</url>
-    <description>not specified</description>
+    <description>This is special version for facebook fans page.</description>
     <copyright>2015 by YanInc.</copyright>
     <icon>appicon.png</icon>
     <fullscreen>false</fullscreen>
-    <navbar-hidden>false</navbar-hidden>
+    <navbar-hidden>true</navbar-hidden>
     <analytics>true</analytics>
     <guid>99c3e34f-dde4-4041-b1a5-b43e30cfe445</guid>
     <property name="ti.ui.defaultunit" type="string">dp</property>
@@ -38,7 +38,9 @@
             </dict>
         </plist>
     </ios>
-    <android xmlns:android="http://schemas.android.com/apk/res/android"/>
+    <android xmlns:android="http://schemas.android.com/apk/res/android">
+        <abi>armeabi</abi>
+    </android>
     <mobileweb>
         <precache/>
         <splash>
