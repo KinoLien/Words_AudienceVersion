@@ -58,6 +58,8 @@ var getCurrentPositionLayout = function(orientationMode){
 	obj.highlightInitLeft = totalBlockColumnHeaderSize * totalBlockWidthScale;
 	obj.highlightInitTop = totalBlockColumnHeaderSize * totalBlockHeightScale; 
 	
+	obj.shortCanvasSplit = obj.highlightInitTop / 8;
+	
 	obj.highlightBorder = obj.blockHeight / highlightBorderScale / 2;
 	
 	return obj;

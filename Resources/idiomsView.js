@@ -250,7 +250,7 @@ var onCanvasTouchStart = function(e){
 	//*/
 	var innerShortCanvas = idiomsShortCanvasArray[idiomsCurrentRow - 1][idiomsCurrentCol - 1];
 	if(innerShortCanvas){
-		innerShortCanvas.strokeStyle = "#0000ff";
+		innerShortCanvas.strokeStyle = "#ececec";
 		innerShortCanvas.beginPath();
 		innerShortCanvas.drawPoint(e.x * idiomsOriginToShortScale, e.y * idiomsOriginToShortScale);
 		innerShortCanvas.moveTo(e.x * idiomsOriginToShortScale, e.y * idiomsOriginToShortScale);
@@ -294,7 +294,7 @@ var onCanvasTouchMove = function(e){
 		/*/
 		var innerShortCanvas = idiomsShortCanvasArray[idiomsCurrentRow - 1][idiomsCurrentCol - 1];
 		if(innerShortCanvas){
-			innerShortCanvas.strokeStyle = "#0000ff";
+			innerShortCanvas.strokeStyle = "#ececec";
 			innerShortCanvas.lineTo(e.x * idiomsOriginToShortScale, e.y * idiomsOriginToShortScale);
 			innerShortCanvas.moveTo(e.x * idiomsOriginToShortScale, e.y * idiomsOriginToShortScale);
 			innerShortCanvas.stroke();
@@ -313,7 +313,8 @@ var onCanvasTouchCancel = function(e){ isDrawing = false;
 
 var idiomsPrepareCanvasView = function(initPosition, img){
 	var res = Canvas.createCanvasView({
-		backgroundImage: img || 'block-524.png',
+		opacity: 0.9,
+		backgroundImage: img || 'block-508.png' || 'block-524.png',
 		width: initPosition.squareWidth + 'px',
 		height: initPosition.squareWidth + 'px',
 		bottom: initPosition.canvasBottom + 'px'
@@ -330,6 +331,7 @@ var idiomsPrepareCanvasView = function(initPosition, img){
 
 var idiomsPrepareShortCanvasView = function(canvasInfo){
 	var res = Canvas.createCanvasView({
+		backgroundColor:'#3c3c3c',
 		width: canvasInfo.width + 'px',
 		height: canvasInfo.height + 'px',
 		left: canvasInfo.left + 'px',
@@ -390,13 +392,14 @@ var idiomsPrepareDrawingView = function(initPosition){
 	var maskView = Ti.UI.createView({
 		width: initPosition.longSideWidth + 'px',
 		height: initPosition.shortSideWidth + 'px',
-		backgroundColor:'#e0e0e0',
-		opacity:0.7
+		backgroundColor:'#222',
+		opacity:0.5
 	});
 	
 	var idiomsConfirmButton = Ti.UI.createButton({
-		color: '#ffffff',
-		backgroundColor:'#22ee22',
+		color: '#ececec',
+		//backgroundColor:'#22ee22',
+		//backgroundColor:'#000',
 		//backgroundSelectedColor:'#3ff',	// that is not support IOS
 		// maybe use backgroundImage and backgroundSelectedImage instead
 		bottom: initPosition.gapUnitSize * 2 + initPosition.padding * 2 + 'px',
@@ -404,16 +407,19 @@ var idiomsPrepareDrawingView = function(initPosition){
 		width: clearBtnWidth + 'px',
 		height: initPosition.gapUnitSize * 2 + 'px',
 		title:'確定',
+		borderRadius: initPosition.gapUnitSize / 4,
+		borderColor: '#ececec',
+		borderWidth:  initPosition.gapUnitSize / 8 + 'px',
 		font:{
 			fontSize: initPosition.fontSize + 'px',
-			fontFamily: 'Helvetica Neue',
-			fontWeight: 'bold'
+			fontFamily: 'Helvetica Neue'
 		}
 	}); 
 	
 	var idiomsClearButton = Ti.UI.createButton({
-		color: '#ffffff',
-		backgroundColor:'#ee2222',
+		color: '#ececec',
+		//backgroundColor:'#ee2222',
+		//backgroundColor:'#000',
 		//backgroundSelectedColor:'#3ff',	// that is not support IOS
 		// maybe use backgroundImage and backgroundSelectedImage instead
 		bottom: initPosition.padding + 'px',
@@ -421,10 +427,12 @@ var idiomsPrepareDrawingView = function(initPosition){
 		width: clearBtnWidth + 'px',
 		height: initPosition.gapUnitSize * 2 + 'px',
 		title:'清除',
+		borderRadius: initPosition.gapUnitSize / 4,
+		borderColor: '#ececec',
+		borderWidth:  initPosition.gapUnitSize / 8 + 'px',
 		font:{
 			fontSize: initPosition.fontSize + 'px',
-			fontFamily: 'Helvetica Neue',
-			fontWeight: 'bold'
+			fontFamily: 'Helvetica Neue'
 		}
 	});
 	
@@ -505,7 +513,7 @@ var idiomsPrepareDrawingView = function(initPosition){
 	});
 	
 	idiomsDrawingView.add(maskView);
-	idiomsDrawingView.add(idiomsCancelButton);
+	//idiomsDrawingView.add(idiomsCancelButton);
 	idiomsDrawingView.add(idiomsConfirmButton);
 	idiomsDrawingView.add(idiomsClearButton);
 	idiomsDrawingView.add(cview);
@@ -616,9 +624,9 @@ var idiomsViewInit = function(meta){
 	idiomsMaskView.label = idiomsMaskLabel;
 	idiomsWindow.maskView = idiomsMaskView;
 	
-	idiomsShortToProtocolScale = canvasProtocol.width / initPosition.highlightWidth;
+	idiomsShortToProtocolScale = canvasProtocol.width / (initPosition.highlightWidth - initPosition.shortCanvasSplit * 2);
 	idiomsOriginToProtocolScale = canvasProtocol.width / initPosition.squareWidth;
-	idiomsOriginToShortScale = initPosition.highlightWidth / initPosition.squareWidth;
+	idiomsOriginToShortScale = (initPosition.highlightWidth - initPosition.shortCanvasSplit * 2) / initPosition.squareWidth;
 	
 	var xBlockMin = 1;
 	var yBlockMin = 1;
@@ -636,10 +644,10 @@ var idiomsViewInit = function(meta){
 		for(var col = 0; col < xBlocks; col++){
 			//oSingleRow.push(false);
 			var shortCanvas = idiomsPrepareShortCanvasView({
-				width: initPosition.highlightWidth,
-				height: initPosition.highlightHeight,
-				left: initPosition.highlightWidth * col + initPosition.highlightInitLeft,
-				top: initPosition.highlightHeight * row + initPosition.highlightInitTop,
+				width: initPosition.highlightWidth - initPosition.shortCanvasSplit * 2,
+				height: initPosition.highlightHeight - initPosition.shortCanvasSplit * 2,
+				left: initPosition.highlightWidth * col + initPosition.highlightInitLeft + initPosition.shortCanvasSplit,
+				top: initPosition.highlightHeight * row + initPosition.highlightInitTop + initPosition.shortCanvasSplit,
 				relatedView: drawingView,
 				rowIndex: row,
 				colIndex: col,
@@ -657,6 +665,7 @@ var idiomsViewInit = function(meta){
 		idiomsShortCanvasArray.push(scSingleRow);
 		idiomsCanvasPointArray.push(cSingleRow);
 	}
+	
 	
 	// var textLabelView = Titanium.UI.createLabel({
 		// color:'#000',

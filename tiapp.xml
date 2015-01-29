@@ -41,12 +41,14 @@
         <abi>armeabi</abi>
         <manifest>
             <application>
-                <activity android:name=".Activity" android:label="@string/app_name" android:theme="@style/Theme.Titanium" android:screenOrientation="landscape" android:configChanges="keyboardHidden|orientation">
+                <activity android:name=".Activity" android:label="@string/app_name" android:theme="@style/Theme.Titanium" android:screenOrientation="landscape" android:configChanges="keyboardHidden">
 					<intent-filter>
 						<action android:name="android.intent.action.MAIN"/>
 						<category android:name="android.intent.category.LAUNCHER"/>
 					</intent-filter>
 				</activity>
+				<activity android:name="org.appcelerator.titanium.TiActivity" android:screenOrientation="landscape" android:configChanges="keyboardHidden"/>
+				<activity android:name="org.appcelerator.titanium.TiTranslucentActivity" android:screenOrientation="landscape" android:configChanges="keyboardHidden" android:theme="@android:style/Theme.Translucent"/>
             </application>
         </manifest>
     </android>
