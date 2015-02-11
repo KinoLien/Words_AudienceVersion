@@ -6,6 +6,7 @@ var idiomsCurrentCol = 1;
 
 var idiomsShortCanvasArray = [];
 var idiomsCanvasPointArray = [];
+var idiomsWordCache = {};
 
 var idiomsShortToProtocolScale = 1;
 var idiomsOriginToProtocolScale = 1;
@@ -18,6 +19,9 @@ var clearIdiomsInfo = function(){
 	idiomsCurrentCol = 1;
 	idiomsShortCanvasArray = null;
 	idiomsCanvasPointArray = null;
+	idiomsWordCache = {};
+	
+	fbLoginCallbackList.pop();
 	
 	idiomsShortToProtocolScale = 1;
 	idiomsOriginToProtocolScale = 1;
@@ -331,7 +335,7 @@ var idiomsPrepareCanvasView = function(initPosition, img){
 
 var idiomsPrepareShortCanvasView = function(canvasInfo){
 	var res = Canvas.createCanvasView({
-		backgroundColor:'#3c3c3c',
+		backgroundColor:'#5a5a5a',
 		width: canvasInfo.width + 'px',
 		height: canvasInfo.height + 'px',
 		left: canvasInfo.left + 'px',
@@ -343,8 +347,26 @@ var idiomsPrepareShortCanvasView = function(canvasInfo){
 	
 	res.addEventListener('load', function(e){
 		var v = e.source;
-		v.lineWidth = canvasProtocol.lineWidth / idiomsShortToProtocolScale * 1.5;
-		v.lineCap = canvasProtocol.lineCap;
+		if(v){
+			v.lineWidth = canvasProtocol.lineWidth / idiomsShortToProtocolScale * 1.5;
+			v.lineCap = canvasProtocol.lineCap;
+			v.strokeStyle = canvasProtocol.lineColor;
+		}
+		
+		var value = idiomsWordCache[res.rowIndex+'_'+res.colIndex];
+		var points = idiomsCanvasPointArray[res.rowIndex][res.colIndex];
+		if(value){
+			v.clear();
+			var w = parseFloat(v.getWidth());
+			v.beginPath();
+			//innerShortCanvas.textAlign = "center";
+			v.textStyle = "bold";
+			v.fillStyle = "#ececec";
+			v.textSize = w * 13 / 15;
+			v.fillText(value, w / 15, w * 12 / 15);
+		}else if(points.length > 0){
+			drawPointToCanvas(points, v, idiomsShortToProtocolScale);
+		} 
 	});
 	
 	res.addEventListener('singletap', (function(view, block){
@@ -357,7 +379,7 @@ var idiomsPrepareShortCanvasView = function(canvasInfo){
 			block.moveTo(row, col);
 			//var isOccupied = idiomsOccupyArray[row][col];
 			//if(isOccupied) alert("這格已經不能寫囉！"); 
-			
+			if(idiomsWordCache[row+'_'+col]) return;
 			var points = idiomsCanvasPointArray[row][col];
 			if(points.length > 0){
 				var last = view.children.length - 1;
@@ -543,7 +565,9 @@ var idiomsViewInit = function(meta){
 	
 	/* Create Background Image */
 	var backgroundView = Ti.UI.createView({
+		
 		backgroundImage: "idioms_totalBlocks.png",
+		backgroundColor: "#000",
 		//right: 0 + 'px',
 		top: 0 + 'px',
 		//width: 'auto',
@@ -601,6 +625,23 @@ var idiomsViewInit = function(meta){
 	
 	backgroundView.add(highlightView);
 	//backgroundView.add(highlightView2);
+	
+	var uploadButton = Ti.UI.createButton({
+		right:0,
+		top:0,
+		color:'#ececec',
+		backgroundColor:'#384d92',
+		width: initPosition.gapUnitSize * 2 + 'px',
+		height: initPosition.gapUnitSize * 2 + 'px',
+		title: (FB.loggedIn)? '發佈':'登入',
+		borderRadius: initPosition.gapUnitSize / 8,
+		borderColor: '#ececec',
+		borderWidth:  initPosition.gapUnitSize / 8 + 'px',
+		font:{
+			fontSize: initPosition.fontSize * 0.7 + 'px',
+			fontFamily: 'Helvetica Neue'
+		}
+	});
 	
 	var idiomsMaskView = Titanium.UI.createView({
 		backgroundColor:'#e0e0e0',
@@ -698,6 +739,100 @@ var idiomsViewInit = function(meta){
 	// });
 // 	
 	
+	uploadButton.addEventListener('click',function(e){
+		e.cancelBubble = true;
+		var indexToDoing = [];
+		if(FB.loggedIn){
+			indexToDoing.push('個人狀態');
+			if(currentGameId){
+				indexToDoing.push('粉絲團');	
+			}
+			indexToDoing.push("取消");
+			var dialog = Ti.UI.createAlertDialog({
+			    cancel: indexToDoing.length - 1,
+			    buttonNames: indexToDoing,
+			    message: '即將發佈至FB的...',
+			    title: '發佈'
+			});
+			dialog.addEventListener('click', function(event){
+				if(event.index != indexToDoing.length - 1){
+					idiomsWindow.loadingShow();
+					var imageBlob = backgroundView.toImage();
+					var data = {};
+					var url = "";
+					if(event.index == 0){
+						// indexToDoing[0]
+						url = "me/photos";
+						data.picture = imageBlob.media;
+					}else{
+						// indexToDoing[1]
+						url = currentGameId+'/comments';
+						data.source = imageBlob.media;
+					}
+					FB.requestWithGraphPath(url, data, 'POST', function(e){
+					    if (e.success) {
+					    	var res = JSON.parse(e.result);
+					    	if(res.id){
+					    		alert("發佈成功");	
+					    	}
+					    } else {
+					        if (e.error) {
+					        	var errorSplit = e.error.split(':');
+					        	var mainErrorMessage = "";
+					        	if(errorSplit.length) mainErrorMessage = errorSplit[0];
+					            var reg = new RegExp("Unable to resolve host");
+					        	if(reg.test(mainErrorMessage)){
+					        		alert("發佈失敗！ \n無法連結FB。請檢查網路狀態！");	
+					        	}else{
+					        		alert("發佈失敗！ \n"+mainErrorMessage);	
+					        	}
+					        } else {
+					            alert("Unkown result");
+					        }
+					    }
+					    idiomsWindow.loadingHide();
+					});
+				}
+			});
+			dialog.show();
+		}else{
+			FB.checkAndLogin(idiomsWindow);
+		}
+		
+		
+		
+		// var imageBlob = backgroundView.toImage();
+		// var data = {
+			// source: imageBlob.media
+		// };
+		// idiomsWindow.loadingShow();
+		// if(FB.loggedIn){
+			// if(currentGameId){
+				// FB.requestWithGraphPath(currentGameId+'/comments', data, 'POST', function(e){
+				    // if (e.success) {
+				    	// var res = JSON.parse(e.result);
+				    	// if(res.id){
+				    		// alert("發佈成功");	
+				    	// }
+				    // } else {
+				        // if (e.error) {
+				        	// var a = e.error.split(':');
+				        	// if(a.length) a = a[0];
+				            // alert("發佈失敗，請檢查網路是否良好。 \n"+a);
+				        // } else {
+				            // alert("Unkown result");
+				        // }
+				    // }
+				    // idiomsWindow.loadingHide();
+				// });
+			// }else{
+// 				
+			// }
+		// }else{
+// 			
+		// }
+	});
+	
 	idiomsWindow.addEventListener('androidback', function(e){
 		// close socket
 		e.cancelBubble = true;
@@ -725,165 +860,25 @@ var idiomsViewInit = function(meta){
 	});
 	
 	var squareSize = Ti.Platform.displayCaps.dpi;
-	//var arrows = arrowsViewInit(initPosition, highlightView);
-	//var select = selectViewInit(initPosition);
-	// var idiomsSecondView = secondViewInit(initPosition);
-	// idiomsSecondView.visible = meta.hasSecond !== false;
-	// idiomsWindow.countDownLabel = idiomsSecondView;
 	
-	//var end = endViewInit(initPosition);
-	
-	/*
-	arrows.addEventListener('touchend', function(e){
-		arrows.setOpacity(0.4);
-	});
-	arrows.addEventListener('touchcancel', function(e){
-		arrows.setOpacity(0.4);
-	});
-	arrows.addEventListener('touchstart', function(e){
-		arrows.setOpacity(0.8);
-		var x = e.x,
-			y = e.y,
-			leftBound = squareSize * 4.5 / 13,
-			rightBound = squareSize * 8.5 / 13,
-			topBound = leftBound,
-			bottomBound = rightBound;
-		
-		var currentLeft = parseFloat(highlightView.getLeft());
-		var currentTop = parseFloat(highlightView.getTop());
-		var xStep = initPosition.highlightWidth;
-		var yStep = initPosition.highlightHeight;
-		var xDiff, yDiff;
-		
-		if(x <= leftBound){
-			// left region
-			if(idiomsCurrentCol > xBlockMin){
-				idiomsCurrentCol--;
-				highlightView.setLeft((currentLeft - xStep) + 'px');
-			}
-		}else if(x > leftBound && x < rightBound){
-			// center region
-		}else{
-			// right region
-			if(idiomsCurrentCol < xBlocks){
-				idiomsCurrentCol++;
-				highlightView.setLeft((currentLeft + xStep) + 'px');
-			}
-		}
-		
-		if(y <= topBound){
-			// top region
-			if(idiomsCurrentRow > yBlockMin){
-				idiomsCurrentRow--;
-				highlightView.setTop((currentTop - yStep) + 'px');
-			}
-		}else if(y > topBound && y < bottomBound){
-			// middle region
-		}else{
-			// bottom region
-			if(idiomsCurrentRow < yBlocks){
-				idiomsCurrentRow++;
-				highlightView.setTop((currentTop + yStep) + 'px');
-			}
-		}
-		
-		if(socketObj){
-			socketObj.trigger(
-				IDIOMS_EVENT + "." + MOVE_BLOCK_EVENT,
-				triggerObj.combine({ 
-					block:{
-						row: idiomsCurrentRow,
-						column: idiomsCurrentCol
-					} 
-				})
-			);
-		}
-	});
-	*/
-	
-	/*
-	select.addEventListener('touchend', function(e){
-		select.setOpacity(0.4);
-		
-		var isOccupied = idiomsOccupyArray[idiomsCurrentRow - 1][idiomsCurrentCol - 1];
-		if(isOccupied) alert("這格已經不能寫囉！"); 
-		if((testMode || (canWrite && !isOccupied)) && select.validTouch){
-			select.validTouch = false;
-			var points = idiomsCanvasPointArray[idiomsCurrentRow - 1][idiomsCurrentCol - 1];
-			if(points.length > 0){
-				var last = drawingView.children.length - 1;
-				drawPointToCanvas(points, drawingView.children[last]);
-			}
-			drawingView.show();
-			if(socketObj){
-				socketObj.trigger(
-					ACTION_EVENT,
-					triggerObj.combine({ 
-						block:{
-							row: idiomsCurrentRow,
-							column: idiomsCurrentCol
-						},
-						stamp: (new Date()).getTime(),
-						action: "device_start" 
-					})
-				);
-			}
-		}
-	});
-	select.addEventListener('touchcancel', function(e){
-		select.setOpacity(0.4);
-		select.validTouch = false;
-	});
-	select.addEventListener('touchstart', function(e){
-		if(testMode || canWrite){
-			 select.validTouch = true;
-			 select.setOpacity(0.8);
-		}
-	});
-	*/
-	
-	/*
-	end.addEventListener('touchend', function(e){
-		end.setOpacity(0.4);
-		if((testMode || canWrite) && end.validTouch){
-			var blocks = [];
-			for(var x in idiomsDirtyList){
-				if(idiomsDirtyList[x]){
-					var rowAndCol = x.split('-');
-					if(rowAndCol.length == 2){
-						blocks.push({
-							row: rowAndCol[0],
-							column: rowAndCol[1]
-						});
-					}
-				}
-			}
-			
-			if(testMode){
-				alert("Send Blocks: " + JSON.stringify(blocks));
-			}
-			
-			if(socketObj){
-				socketObj.trigger(
-					IDIOMS_EVENT + "." + END_ROUND_EVENT,
-					triggerObj.combine({ 
-						blocks:blocks
-					})
-				);
-			}
-		}
-	});
-	end.addEventListener('touchcancel', function(e){
-		end.setOpacity(0.4);
-		end.validTouch = false;
-	});
-	end.addEventListener('touchstart', function(e){
-		end.setOpacity(0.8);
-		if(testMode || canWrite){
-			 end.validTouch = true;
-		}
-	});
-	*/
+	fbLoginCallbackList.push((function(button, win){
+		return function(e){
+			button.setTitle('發佈');
+			win.loadingHide();
+		};
+	})(uploadButton, idiomsWindow));
+	fbCancelCallbackList.push((function(win){
+		return function(e){
+			win.loadingHide();
+		};
+	})(idiomsWindow));
+	// fbLogoutCallbackList.add((function(button, win){
+		// return function(e){
+			// button.setTitle("登入");
+			// win.loadingHide();
+		// };
+	// })(uploadButton, idiomsWindow));
+
 	
 	idiomsWindow.add(backgroundView);
 	//idiomsWindow.add(textLabelView);
@@ -892,8 +887,25 @@ var idiomsViewInit = function(meta){
 	//idiomsWindow.add(select);
 	//idiomsWindow.add(idiomsSecondView);
 	//idiomsWindow.add(end);
+	idiomsWindow.add(uploadButton);
 	idiomsWindow.add(drawingView);
 	idiomsWindow.add(idiomsMaskView);
+	
+	idiomsWindow.putWord = function(rowIndex, colIndex, value){
+		var row = parseInt(rowIndex) - 1;
+	    var originCol = colIndex;
+	    var col = parseInt(originCol);
+	    var columnArray = ['a','b','c','d','e','f','g','h','i','j','k','l'];
+	    if(isNaN(col)){
+			var idx = columnArray.indexOf(originCol.toLowerCase());
+			if(idx != -1){
+				col = idx.toString();
+			}
+	    }
+	    idiomsWordCache[row+'_'+col] = value;
+	    idiomsCanvasPointArray[row][col] = [];
+	    
+	};
 	
 	idiomsWindow.arrangeLayout = function(){
 		//alert("arrange");
@@ -901,23 +913,15 @@ var idiomsViewInit = function(meta){
 	
 	idiomsWindow.refreshAll = function(){
 		var self = this;
-		//idiomsTriggerDeviceAction('stop');
+		
 		isDrawing = false;
-		//canWrite = false;
-		//idiomsDirtyList = {};
-		//self.countDownLabel.reloadCountDownSecond();
-		//self.children[5].hide();
+		
 		drawingView.hide();
 		idiomsCurrentRow = 1; 
 		idiomsCurrentCol = 1;
-		//self.children[0].children[0].moveTo(0, 0);
-		//self.children[0].children[1].moveTo(0, 0);
+		fbLoginCallbackList.pop();
+		fbCancelCallbackList.pop();
 		highlightView.moveTo(0, 0);
-		//highlightView2.moveTo(0, 0);
-		//self.children[1].text = waitForServer;
-		//self.children[1].show();
-		// textLabelView.text = waitForServer;
-		// textLabelView.show();
 		
 		var xBlocks = 12;
 		var yBlocks = 8;
@@ -928,12 +932,14 @@ var idiomsViewInit = function(meta){
 				idiomsCanvasPointArray[row][col] = [];
 			}
 		}
+		idiomsWordCache = {};
 		
-		// if(socketObj){
-			// socketObj.trigger(DEVICE_READY_EVENT, triggerObj);
-		// }
 		idiomsMaskView.hide();
 	};
 	
+	createLoadingScreen.call(idiomsWindow, initPosition);
+	
 	return idiomsWindow;
 };
+
+
