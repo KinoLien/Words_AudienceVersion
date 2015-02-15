@@ -78,7 +78,7 @@ var loginViewInit = function(){
 			loginWindow.loadingHide();
 		});
 		if(FB.loggedIn){
-			FB.requestWithGraphPath('1027783900583168/feed', {}, 'GET', function(e){
+			FB.requestWithGraphPath('1027783900583168/feed', {limit: 50}, 'GET', function(e){
 			    if (e.success) {
 			    	var res = JSON.parse(e.result);
 			    	var dataList = res.data;
