@@ -632,11 +632,11 @@ var idiomsViewInit = function(meta){
 		color:'#ececec',
 		backgroundColor:'#384d92',
 		width: initPosition.gapUnitSize * 2 + 'px',
-		height: initPosition.gapUnitSize * 2 + 'px',
+		height: initPosition.gapUnitSize * 1.5 + 'px',
 		title: (FB.loggedIn)? '發佈':'登入',
 		borderRadius: initPosition.gapUnitSize / 8,
 		borderColor: '#ececec',
-		borderWidth:  initPosition.gapUnitSize / 8 + 'px',
+		borderWidth:  initPosition.gapUnitSize / 16 + 'px',
 		font:{
 			fontSize: initPosition.fontSize * 0.7 + 'px',
 			fontFamily: 'Helvetica Neue'

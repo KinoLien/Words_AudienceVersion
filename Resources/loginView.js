@@ -1,6 +1,41 @@
 
 var currentGameId = null;
 
+var testPermissionInfo = function(){
+	FB.requestWithGraphPath('me/permissions', {}, 'GET', function(e){
+	    if (e.success) {
+	    	var res = JSON.parse(e.result);
+	    	var pers = res.data;
+	    	for(var i = 0, len = pers.length; i < len; i++){
+	    		//var name = pers[i].permission;
+	    		//alert(pers[i].permission);
+	    		setTimeout((function(name){
+	    			return function(){
+		    			FB.requestWithGraphPath('me/permissions/'+name, {}, 'DELETE', function(event){
+			    			if (event.success) {
+			    			}else{
+			    			}
+			    		});		
+	    			};
+	    		})(pers[i].permission), i * 300);
+	    	}
+	    	
+	    	setTimeout(function(){
+	    		FB.logout();
+	    	}, i * 300);
+	    } else {
+	        if (e.error) {
+	        	var errorSplit = e.error.split(':');
+	        	var mainErrorMessage = e.error;
+	        	if(errorSplit.length) mainErrorMessage = errorSplit[0];
+	            alert(mainErrorMessage);
+	        } else {
+	            alert("Unkown result");
+	        }
+	    }
+	});
+};
+
 var loginViewInit = function(){
 	var initPosition = getCurrentPositionLayout();
 	var loginWindow = Titanium.UI.createWindow({
@@ -8,6 +43,7 @@ var loginViewInit = function(){
 		//title: '一字千金 - 設定',
 		backgroundColor:'#000',
 		//backgroundImage: 'loginBack.png',
+		exitOnClose:true,
 		navBarHidden:true,
 		fullscreen:true,
 		orientationModes:[
@@ -173,6 +209,7 @@ var loginViewInit = function(){
 		return function(e){
 			button.setTitle(' FB 登出 ');
 			win.loadingHide();
+			//testPermissionInfo();
 		};
 	})(loginButton, loginWindow));
 	fbLogoutCallbackList.push((function(button, win){
@@ -193,9 +230,9 @@ var loginViewInit = function(){
 	
 	createLoadingScreen.call(loginWindow, initPosition);
 	
-	loginWindow.addEventListener('androidback', function(e){
-		e.cancelBubble = true;
-	});
+	// loginWindow.addEventListener('androidback', function(e){
+		// e.cancelBubble = true;
+	// });
 	
 	// it's work
 	// loginWindow.addEventListener('open', function(e){

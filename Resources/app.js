@@ -200,7 +200,42 @@ FB.checkAndLogout = function(maskView){
 	FB.requestWithGraphPath('me', {}, 'GET', function(e){
 		// for test
 		if(e.success){
+			//*/
 			FB.logout();
+			/*/
+			FB.requestWithGraphPath('me/permissions', {}, 'GET', function(per_event){
+			    if (per_event.success) {
+			    	var res = JSON.parse(per_event.result);
+			    	var pers = res.data;
+			    	for(var i = 0, len = pers.length; i < len; i++){
+			    		//var name = pers[i].permission;
+			    		//alert(pers[i].permission);
+			    		setTimeout((function(name){
+			    			return function(){
+				    			FB.requestWithGraphPath('me/permissions/'+name, {}, 'DELETE', function(event){
+					    			if (event.success) {
+					    			}else{
+					    			}
+					    		});		
+			    			};
+			    		})(pers[i].permission), i * 300);
+			    	}
+			    	
+			    	setTimeout(function(){
+			    		FB.logout();
+			    	}, i * 300);
+			    } else {
+			        if (e.error) {
+			        	var errorSplit = e.error.split(':');
+			        	var mainErrorMessage = e.error;
+			        	if(errorSplit.length) mainErrorMessage = errorSplit[0];
+			            alert(mainErrorMessage);
+			        } else {
+			            alert("Unkown result");
+			        }
+			    }
+			});
+			//*/
 		}else{
 			if (e.error) {
 	        	var errorSplit = e.error.split(':');
