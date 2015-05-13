@@ -118,18 +118,25 @@ var loginViewInit = function(){
 			    if (e.success) {
 			    	var res = JSON.parse(e.result);
 			    	var dataList = res.data;
-			    	var reg = new RegExp("\\[([^\\s]+)\\]");
+			    	//var reg = new RegExp("\\[([^\\s]+)\\]");
+			    	var reg = new RegExp("([1-8]{1}):(([1-9]{1})|(1[0-2]{1})|([a-lA-L]{1})):[^\\s\\[\\]]+","g");
 			    	for(var i = 0, len = dataList.length; i < len; i++){
 			    		var data = dataList[i];
 			    		var str = data.message;
 						if(reg.test(str)){
 							var matches = str.match(reg);
-							var splits = matches[1].split(':');
-							if(splits.length == 3){
+							//var splits = matches[1].split(':');
+							for(var it = 0, blen = matches.length; it < blen; it++){
+								var splits = matches[it].split(':');
 								idiomsWindow.putWord(splits[0], splits[1], splits[2]);
-								currentGameId = data.id;
-								break;
 							}
+							currentGameId = data.id;
+							break;
+							// if(splits.length == 3){
+								// idiomsWindow.putWord(splits[0], splits[1], splits[2]);
+								// currentGameId = data.id;
+								// break;
+							// }
 						}	
 			    	}
 			    	if(i == len){

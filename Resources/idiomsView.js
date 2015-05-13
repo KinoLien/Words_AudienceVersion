@@ -901,6 +901,8 @@ var idiomsViewInit = function(meta){
 			if(idx != -1){
 				col = idx.toString();
 			}
+	    }else{
+	    	col--;
 	    }
 	    idiomsWordCache[row+'_'+col] = value;
 	    idiomsCanvasPointArray[row][col] = [];
